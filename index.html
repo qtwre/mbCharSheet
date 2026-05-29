@@ -1874,6 +1874,50 @@
       font-size: 0.65rem;
       margin-left: 4px;
     }
+
+    /* ===== Backup Indicator ===== */
+    .backup-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-style: normal;
+    }
+
+    .backup-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .backup-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .backup-dot.green { background: var(--success); }
+    .backup-dot.orange { background: var(--warning); }
+    .backup-dot.red { background: var(--danger); }
+
+    .backup-btn {
+      font-family: var(--font-serif);
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      background: var(--parchment-dark);
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .backup-btn:hover {
+      background: var(--gold-light);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -1905,6 +1949,7 @@
       <div id="modal" class="modal"></div>
     </div>
     <footer style="text-align:center; padding:20px 10px 10px; font-size:0.75rem; color:var(--ink-light); font-style:italic; border-top:1px solid var(--panel-border); margin-top:30px;">
+      <div id="backup-indicator" class="backup-indicator"></div>
       Mythic Bastionland Character Tracker — Created by Eric Sack<br>
       <span style="font-size:0.7rem;">Mythic Bastionland &copy; Chris McDowall / Bastionland Press</span>
     </footer>
@@ -2033,6 +2078,82 @@
       'export-char': 'Download this character as a JSON file. Use this to share characters or move them to another browser.',
       'import-char': 'Load a character from a JSON file. Works with single-character exports and full backup files.',
     };
+
+    // === BACKUP SYSTEM ===
+
+    function getBackupTimestamp() {
+      return localStorage.getItem('mythicBastion_lastBackup');
+    }
+
+    function getChangeCount() {
+      return parseInt(localStorage.getItem('mythicBastion_changeCount') || '0');
+    }
+
+    function incrementChangeCount() {
+      const count = getChangeCount() + 1;
+      localStorage.setItem('mythicBastion_changeCount', count.toString());
+      renderBackupIndicator();
+    }
+
+    function backupAllCharacters() {
+      const ids = getCharIds();
+      const chars = ids.map(id => loadChar(id)).filter(Boolean);
+      if (chars.length === 0) { alert('No characters to back up.'); return; }
+      const data = JSON.stringify(chars, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `mythic-bastionland-backup-${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      localStorage.setItem('mythicBastion_lastBackup', new Date().toISOString());
+      localStorage.setItem('mythicBastion_changeCount', '0');
+      renderBackupIndicator();
+    }
+
+    function getBackupAge(timestamp) {
+      if (!timestamp) return null;
+      const now = new Date();
+      const then = new Date(timestamp);
+      const diffMs = now - then;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return diffMins + 'm ago';
+      if (diffHours < 24) return diffHours + 'h ago';
+      return diffDays + 'd ago';
+    }
+
+    function getBackupState() {
+      const timestamp = getBackupTimestamp();
+      const changeCount = getChangeCount();
+      if (!timestamp) {
+        return changeCount < 5 ? 'orange' : 'red';
+      }
+      const diffMs = new Date() - new Date(timestamp);
+      const diffDays = diffMs / 86400000;
+      if (diffDays < 1) return 'green';
+      if (diffDays < 7) return 'orange';
+      return 'red';
+    }
+
+    function renderBackupIndicator() {
+      const el = document.getElementById('backup-indicator');
+      if (!el) return;
+      const timestamp = getBackupTimestamp();
+      const state = getBackupState();
+      const age = timestamp ? getBackupAge(timestamp) : 'never';
+      el.innerHTML = `
+        <span class="backup-status">
+          <span class="backup-dot ${state}"></span>
+          Last backup: ${age}
+        </span>
+        <button class="backup-btn" onclick="backupAllCharacters()">Backup Now</button>
+      `;
+    }
 
     // === GAME DATABASES ===
 
@@ -3189,6 +3310,7 @@
     function updateChar(mutator) {
       mutator(currentChar);
       saveChar(currentChar);
+      incrementChangeCount();
       render();
     }
 
@@ -5873,6 +5995,9 @@
       a.download = (currentChar.name || 'knight').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
       a.click();
       URL.revokeObjectURL(url);
+      localStorage.setItem('mythicBastion_lastBackup', new Date().toISOString());
+      localStorage.setItem('mythicBastion_changeCount', '0');
+      renderBackupIndicator();
     }
 
     function importChar() {
@@ -5885,16 +6010,24 @@
         const reader = new FileReader();
         reader.onload = (ev) => {
           try {
-            const char = JSON.parse(ev.target.result);
-            if (!char.name || !char.virtues || !char.gd) {
-              alert('Invalid character file.');
+            const parsed = JSON.parse(ev.target.result);
+            const chars = Array.isArray(parsed) ? parsed : [parsed];
+            let imported = 0;
+            let lastId = null;
+            chars.forEach(char => {
+              if (!char.name || !char.virtues || !char.gd) return;
+              char.id = generateId();
+              registerCharId(char.id);
+              saveChar(char);
+              lastId = char.id;
+              imported++;
+            });
+            if (imported === 0) {
+              alert('No valid characters found in file.');
               return;
             }
-            char.id = generateId();
-            registerCharId(char.id);
-            saveChar(char);
-            switchToChar(char.id);
-            addJournalEntry('Character imported from file.', true);
+            switchToChar(lastId);
+            addJournalEntry(`Imported ${imported} character${imported > 1 ? 's' : ''} from file.`, true);
           } catch (err) {
             alert('Failed to import: ' + err.message);
           }
@@ -5937,6 +6070,7 @@
       } else {
         showNewCharacterModal();
       }
+      renderBackupIndicator();
     }
 
     document.addEventListener('DOMContentLoaded', init);
