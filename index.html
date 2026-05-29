@@ -1970,6 +1970,70 @@
       return `<span class="${cls}" onclick="showHelp(event,'${key}')" title="Help">?</span>`;
     }
 
+    const HELP_TEXT = {
+      // --- Character Sheet: Panel Headers ---
+      virtues: 'Your three Virtues: <strong>VIG</strong> (Vigour — physical strength), <strong>CLA</strong> (Clarity — awareness and wit), <strong>SPI</strong> (Spirit — willpower and social force). When a Virtue hits 0, you suffer a penalty. Saves are rolled on d20 — roll equal to or under the Virtue to pass.',
+      guard: '<strong>Guard Dice (GD)</strong> represent your skill at avoiding harm. Damage reduces GD first. When GD hits 0, you take a Scar. GD is fully restored after a moment of peace.',
+      conditions: 'Active conditions affecting your knight. <strong>Wounded</strong>: took VIG damage. <strong>Mortal Wound</strong>: lost half or more remaining VIG in one hit — die in 1 hour without aid. <strong>Doom Scar</strong>: if you take a Mortal Wound this Season, you are Slain instead.',
+      ability: 'Your knight\'s unique Ability — a special rule or power tied to your archetype.',
+      passion: 'Your knight\'s Passion — a drive or obsession. <strong>Indulging your Passion</strong> restores SPI to max without needing a Sacrament.',
+      mount: 'Your mount has its own Virtues and GD. It can be targeted separately by enemies. <strong>Trample Die</strong>: added to your attack pool when Charging.',
+      squire: 'Your squire is a companion with their own stats and equipment. A squire can eventually be <strong>Knighted</strong>, which transfers some of your Virtues to create a new character.',
+      remedies: '<strong>Sustenance</strong> restores VIG. <strong>Stimulant</strong> restores CLA. <strong>Sacrament</strong> restores SPI. Using a Remedy takes a whole Phase and benefits everyone present.',
+      contacts: 'People your knight has met and built relationships with. Track favors owed and descriptions to remember them by.',
+      'season-log': 'A record of seasonal progressions. Each Season you choose a <strong>Pursuit</strong> — what your knight does during downtime.',
+      'scar-history': 'Every time your GD is reduced to exactly 0, you roll on the d12 Scar table. Scars can reduce Virtues, increase max GD, or inflict the dreaded <strong>Doom</strong>.',
+      journal: 'A log of significant events. Actions that change your character (scars, feat uses, knighting, etc.) create auto-entries with <strong>Restore</strong> buttons to undo them.',
+
+      // --- Character Sheet: Individual Controls ---
+      'restore-virtue': 'Restores this Virtue to its max. If you have the matching Remedy, it will be consumed. VIG uses Sustenance, CLA uses Stimulant, SPI uses Sacrament.',
+      'restore-gd': 'Restores Guard to max. GD comes back after any moment of peace — a short rest, end of combat, etc. Also refreshes all Fatigued Feats.',
+      wounded: '<strong>Wounded</strong>: You have taken VIG damage. Cleared when VIG is restored.',
+      'mortal-wound': '<strong>Mortal Wound</strong>: You lost half or more of your remaining VIG in a single hit. You will die within 1 hour unless you receive aid.',
+      'doom-scar': '<strong>Doom Scar</strong>: A cheated death haunts you. If you take a Mortal Wound this Season, you are Slain instantly instead.',
+      exhausted: '<strong>Exhausted</strong> (VIG = 0): You cannot attack if you moved this turn.',
+      exposed: '<strong>Exposed</strong> (CLA = 0): Treated as having 0 GD — all damage goes straight to VIG.',
+      impaired: '<strong>Impaired</strong> (SPI = 0): Your entire attack dice pool is reduced to a single d4.',
+      fatigued: '<strong>Fatigued</strong>: One or more Feats are spent. Fatigued Feats are restored when GD is fully restored.',
+      'indulge-passion': 'Indulging your Passion restores SPI to its maximum without needing a Sacrament remedy.',
+
+      // --- Equipment: Panel Headers ---
+      armour: 'Armour reduces incoming damage. Types: <strong>Shield</strong> (A1, adds shield die to attack), <strong>Coat</strong> (A1), <strong>Helm</strong> (A1), <strong>Plates</strong> (A1). Max total is A4. Only one of each type.',
+      weapons: 'Your equipped weapons. Tags: <strong>Hefty</strong> (one hand, only one allowed), <strong>Long</strong> (two hands), <strong>Slow</strong> (can\'t attack if you moved, also Long).',
+      carried: 'Items you\'re carrying but not actively using. You can equip them when needed.',
+      inventory: 'Miscellaneous items, consumables, and supplies. Freeform text entries.',
+      'add-item': 'Add equipment from the game database or create custom items with your own stats.',
+
+      // --- Equipment: Individual Controls ---
+      'armour-trapped': '<strong>Trapped</strong>: A Gambit can trap a shield, making it useless. A trapped shield doesn\'t count toward your Armour score or add its die to attacks. Toggle to mark it trapped or free.',
+      'weapon-impaired': '<strong>Impaired Weapon</strong>: A Gambit can impair a weapon, reducing its die to d4. Toggle to mark it impaired or restored.',
+
+      // --- Battle: Panel Headers ---
+      'your-attack': 'Build your attack dice pool by selecting weapons. Roll all dice — take the <strong>highest</strong> as damage, use others (4+) for Gambits. Subtract target\'s Armour from the total.',
+      'attack-steps': 'The seven steps of resolving an attack in order: Roll → Deny → Gambits → Highest Die → Bolster → Subtract Armour → Apply Damage.',
+      feats: 'Three special abilities usable once per rest. After using a Feat, make a Save — fail and the Feat is <strong>Fatigued</strong> until GD is fully restored.',
+      'gambits-ref': 'Discard attack dice showing 4+ to perform Gambits (Bolster, Repel, Stop, Impair, Trap, Dismount). Dice showing 8+ unlock <strong>Strong Gambits</strong>. You cannot discard your highest die.',
+      'incoming-damage': 'Calculate damage your knight receives. Enter raw damage — Armour is subtracted automatically. Excess damage after GD goes to VIG, which can trigger Wounds, Mortal Wounds, or Scars.',
+      'mounted-combat': 'While mounted, you can <strong>Charge</strong> to add your mount\'s trample die. Being dismounted in combat deals d6 damage. Your mount can be targeted separately.',
+
+      // --- Battle: Individual Controls ---
+      'feat-smite': '<strong>Smite</strong> (VIG Save): Release righteous fury. Use before rolling a melee attack — gain either +d12 or Blast (hits all nearby enemies).',
+      'feat-focus': '<strong>Focus</strong> (CLA Save): Create an opening. Use after rolling an attack — perform a free Gambit without discarding a die.',
+      'feat-deny': '<strong>Deny</strong> (SPI Save): Rebuff an attack. Use after an attack roll against you or a nearby ally — discard one die from the attacker\'s roll.',
+      'battle-impaired': 'When <strong>Impaired</strong>, your entire dice pool is replaced with a single d4. This happens automatically when SPI = 0, or can be inflicted by a Gambit.',
+      charging: '<strong>Charging</strong>: While mounted, add your mount\'s trample die to the attack pool. Does not work against spearwalls.',
+      'shield-die': 'Your shield automatically adds its die (usually d4) to every attack roll. This die can be used for Gambits but not as the highest damage die if it\'s a shield.',
+      'bonus-dice': 'Add extra dice from situational advantages — allies attacking the same target, special abilities, or other effects.',
+      'damage-calc': 'Enter the <strong>raw damage</strong> you\'re taking (highest die from attack, plus any Bolster). Armour is subtracted automatically. The result reduces GD first, then VIG.',
+
+      // --- Header Controls ---
+      glory: '<strong>Glory</strong> measures your knight\'s renown. Earn it by resolving Myths, winning duels or tournaments, and victorious battles. Ranks: 0 Errant → 3 Gallant → 6 Tenant → 9 Dominant → 12 Radiant (City Quest).',
+      age: 'Your knight\'s life stage: <strong>Young</strong>, <strong>Mature</strong>, or <strong>Old</strong>. Ages advance during seasonal progressions, bringing Virtue changes.',
+      season: 'Current season: <strong>Spring</strong> (Green), <strong>Harvest</strong> (Gold), or <strong>Winter</strong> (Grey). Each Season brings a new Pursuit and seasonal events.',
+      'export-char': 'Download this character as a JSON file. Use this to share characters or move them to another browser.',
+      'import-char': 'Load a character from a JSON file. Works with single-character exports and full backup files.',
+    };
+
     // === GAME DATABASES ===
 
     const EQUIPMENT_DB = {
