@@ -1,0 +1,14 @@
+# Exclude everything except the app and config
+*
+
+# Include the app
+!index.html
+
+# Include git config files
+!.gitignore
+!docs/
+!docs/**
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
