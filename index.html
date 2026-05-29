@@ -3451,7 +3451,7 @@
         rows += `<button class="btn btn-small" onclick="adjustVirtue('${v}', -1)">−</button>`;
         rows += `<span class="virtue-values">${cur} / ${max}</span>`;
         rows += `<button class="btn btn-small" onclick="adjustVirtue('${v}', 1)">+</button>`;
-        rows += `<button class="btn btn-small" onclick="restoreVirtue('${v}')">Restore</button>`;
+        rows += `<button class="btn btn-small" onclick="restoreVirtue('${v}')">Restore</button>${helpBtn('restore-virtue', true)}`;
         rows += `<span style="font-size:0.75rem;color:var(--ink-light);margin-left:4px">max:</span>`;
         rows += `<button class="btn btn-small max-adjust" onclick="adjustVirtueMax('${v}', -1)">−</button>`;
         rows += `<button class="btn btn-small max-adjust" onclick="adjustVirtueMax('${v}', 1)">+</button>`;
@@ -3462,7 +3462,7 @@
       });
 
       return `<div class="panel">
-        <div class="panel-header">Virtues</div>
+        <div class="panel-header">Virtues ${helpBtn('virtues')}</div>
         <div class="panel-body">${rows}</div>
       </div>`;
     }
@@ -3523,14 +3523,14 @@
       html += `<button class="btn btn-small" onclick="adjustGD(-1)">−</button>`;
       html += `<span class="virtue-values">${c.gd.current} / ${c.gd.max}</span>`;
       html += `<button class="btn btn-small" onclick="adjustGD(1)">+</button>`;
-      html += `<button class="btn btn-small" onclick="restoreGD()">Restore GD</button>`;
+      html += `<button class="btn btn-small" onclick="restoreGD()">Restore GD</button>${helpBtn('restore-gd', true)}`;
       html += `<span style="font-size:0.75rem;color:var(--ink-light);margin-left:4px">max:</span>`;
       html += `<button class="btn btn-small max-adjust" onclick="adjustGDMax(-1)">−</button>`;
       html += `<button class="btn btn-small max-adjust" onclick="adjustGDMax(1)">+</button>`;
       html += `</div>`;
 
       return `<div class="panel">
-        <div class="panel-header">Guard</div>
+        <div class="panel-header">Guard ${helpBtn('guard')}</div>
         <div class="panel-body">${html}</div>
       </div>`;
     }
@@ -3571,14 +3571,14 @@
 
       // Toggleable conditions
       const toggles = [
-        { key: 'doomScar', label: 'Doom Scar', danger: true },
-        { key: 'wounded', label: 'Wounded', danger: true },
-        { key: 'mortalWound', label: 'Mortal Wound', danger: true },
+        { key: 'doomScar', label: 'Doom Scar', danger: true, helpKey: 'doom-scar' },
+        { key: 'wounded', label: 'Wounded', danger: true, helpKey: 'wounded' },
+        { key: 'mortalWound', label: 'Mortal Wound', danger: true, helpKey: 'mortal-wound' },
       ];
       toggles.forEach(t => {
         const active = c.conditions[t.key];
         const cls = active ? (t.danger ? 'condition-danger' : 'condition-active') : '';
-        tags += `<span class="condition-tag condition-toggle ${cls}" onclick="toggleCondition('${t.key}')">${t.label}</span>`;
+        tags += `<span class="condition-tag condition-toggle ${cls}" onclick="toggleCondition('${t.key}')">${t.label}${helpBtn(t.helpKey, true)}</span>`;
       });
 
       // Custom conditions
@@ -3594,11 +3594,11 @@
       if (c.virtues.spi.current === 0) derived.push('Impaired');
       if (Object.values(c.feats).some(v => v === 'fatigued')) derived.push('Fatigued');
       derived.forEach(d => {
-        tags += `<span class="condition-tag condition-derived">${d}</span>`;
+        tags += `<span class="condition-tag condition-derived">${d}${helpBtn(d.toLowerCase(), true)}</span>`;
       });
 
       return `<div class="panel">
-        <div class="panel-header">Conditions</div>
+        <div class="panel-header">Conditions ${helpBtn('conditions')}</div>
         <div class="panel-body"><div class="conditions-wrap">${tags}</div></div>
       </div>`;
     }
@@ -3631,7 +3631,7 @@
 
       // Ability card
       html += `<div class="panel">
-        <div class="panel-header">Ability</div>
+        <div class="panel-header">Ability ${helpBtn('ability')}</div>
         <div class="panel-body">
           <strong>${c.ability.name}</strong>
           <p style="margin-top:4px;font-size:0.9rem">${c.ability.description}</p>
@@ -3640,11 +3640,11 @@
 
       // Passion card
       html += `<div class="panel">
-        <div class="panel-header">Passion</div>
+        <div class="panel-header">Passion ${helpBtn('passion')}</div>
         <div class="panel-body">
           <strong>${c.passion.name}</strong>
           <p style="margin-top:4px;font-size:0.9rem">${c.passion.description}</p>
-          <button class="btn btn-small btn-gold" style="margin-top:8px" onclick="indulgePassion()">Indulge Passion</button>
+          <button class="btn btn-small btn-gold" style="margin-top:8px" onclick="indulgePassion()">Indulge Passion</button>${helpBtn('indulge-passion', true)}
         </div>
       </div>`;
 
@@ -3689,12 +3689,12 @@
         body += `<div style="margin-top:10px"><button class="btn btn-small btn-danger" onclick="removeMount()">Remove Mount</button></div>`;
 
         return `<div class="panel collapsible">
-          <div class="panel-header">Mount</div>
+          <div class="panel-header">Mount ${helpBtn('mount')}</div>
           <div class="panel-body">${body}</div>
         </div>`;
       } else {
         return `<div class="panel collapsible">
-          <div class="panel-header">Mount</div>
+          <div class="panel-header">Mount ${helpBtn('mount')}</div>
           <div class="panel-body">
             <p class="text-muted" style="font-style:italic">No mount</p>
             <button class="btn btn-small btn-gold" style="margin-top:8px" onclick="showAddMountForm()">Add Mount</button>
@@ -3838,12 +3838,12 @@
         body += `</div>`;
 
         return `<div class="panel collapsible">
-          <div class="panel-header">Squire</div>
+          <div class="panel-header">Squire ${helpBtn('squire')}</div>
           <div class="panel-body">${body}</div>
         </div>`;
       } else {
         return `<div class="panel collapsible">
-          <div class="panel-header">Squire</div>
+          <div class="panel-header">Squire ${helpBtn('squire')}</div>
           <div class="panel-body">
             <p class="text-muted" style="font-style:italic">No squire</p>
             <button class="btn btn-small btn-gold" style="margin-top:8px" onclick="showAddSquireForm()">Add Squire</button>
@@ -3983,7 +3983,7 @@
       rows += `<p class="remedy-note">Using a Remedy requires a whole Phase. Benefits all company present.</p>`;
 
       return `<div class="panel">
-        <div class="panel-header">Remedies</div>
+        <div class="panel-header">Remedies ${helpBtn('remedies')}</div>
         <div class="panel-body">${rows}</div>
       </div>`;
     }
@@ -4020,7 +4020,7 @@
       body += `<div id="contact-form-area"></div>`;
 
       return `<div class="panel collapsible">
-        <div class="panel-header">Contacts</div>
+        <div class="panel-header">Contacts ${helpBtn('contacts')}</div>
         <div class="panel-body">${body}</div>
       </div>`;
     }
@@ -4121,7 +4121,7 @@
       }
 
       return `<div class="panel collapsible">
-        <div class="panel-header">Season Log</div>
+        <div class="panel-header">Season Log ${helpBtn('season-log')}</div>
         <div class="panel-body">${body}</div>
       </div>`;
     }
@@ -4277,7 +4277,7 @@
       }
 
       return `<div class="panel collapsible">
-        <div class="panel-header">Scar History</div>
+        <div class="panel-header">Scar History ${helpBtn('scar-history')}</div>
         <div class="panel-body">${body}</div>
       </div>`;
     }
@@ -4319,7 +4319,7 @@
       }
 
       return `<div class="panel">
-        <div class="panel-header">Journal</div>
+        <div class="panel-header">Journal ${helpBtn('journal')}</div>
         <div class="panel-body">${body}</div>
       </div>`;
     }
@@ -4456,7 +4456,7 @@
       const total = calcArmourTotal();
 
       let html = `<div class="panel">`;
-      html += `<div class="panel-header">Armour</div>`;
+      html += `<div class="panel-header">Armour ${helpBtn('armour')}</div>`;
       html += `<div class="panel-body">`;
       html += `<div class="armour-total">Total Armour: A[${total}]</div>`;
 
@@ -4474,7 +4474,7 @@
           }
           if (aType === 'shield') {
             const trappedClass = a.trapped ? ' style="background:var(--danger);color:#fff"' : '';
-            html += `<span class="trapped-indicator"${trappedClass} onclick="toggleArmourTrapped(${i})" title="Toggle Trapped (Gambit)">${a.trapped ? 'TRAPPED' : 'Trap'}</span>`;
+            html += `<span class="trapped-indicator"${trappedClass} onclick="toggleArmourTrapped(${i})" title="Toggle Trapped (Gambit)">${a.trapped ? 'TRAPPED' : 'Trap'}</span>${helpBtn('armour-trapped', true)}`;
           }
           html += `<div class="equip-actions">`;
           html += `<button class="btn btn-small" onclick="unequipArmour(${i})">Unequip</button>`;
@@ -4494,7 +4494,7 @@
       const weapons = c.weapons || [];
 
       let html = `<div class="panel">`;
-      html += `<div class="panel-header">Weapons</div>`;
+      html += `<div class="panel-header">Weapons ${helpBtn('weapons')}</div>`;
       html += `<div class="panel-body">`;
 
       if (weapons.length === 0) {
@@ -4510,9 +4510,9 @@
             html += ` <span class="tag-badge" title="${tip}">${t}</span>`;
           });
           if (w.weaponImpaired) {
-            html += `<span class="impaired-indicator" style="background:var(--danger);color:#fff" onclick="toggleWeaponImpaired(${i})" title="Toggle Impaired (Gambit)">IMPAIRED</span>`;
+            html += `<span class="impaired-indicator" style="background:var(--danger);color:#fff" onclick="toggleWeaponImpaired(${i})" title="Toggle Impaired (Gambit)">IMPAIRED</span>${helpBtn('weapon-impaired', true)}`;
           } else {
-            html += `<span class="impaired-indicator" onclick="toggleWeaponImpaired(${i})" title="Toggle Impaired (Gambit)">Impair</span>`;
+            html += `<span class="impaired-indicator" onclick="toggleWeaponImpaired(${i})" title="Toggle Impaired (Gambit)">Impair</span>${helpBtn('weapon-impaired', true)}`;
           }
           html += `<div class="equip-actions">`;
           html += `<button class="btn btn-small" onclick="unequipWeapon(${i})">Unequip</button>`;
@@ -4532,7 +4532,7 @@
       const carried = c.carried || [];
 
       let html = `<div class="panel">`;
-      html += `<div class="panel-header">Carried (Unequipped)</div>`;
+      html += `<div class="panel-header">Carried (Unequipped) ${helpBtn('carried')}</div>`;
       html += `<div class="panel-body">`;
 
       if (carried.length === 0) {
@@ -4559,7 +4559,7 @@
       const inv = c.inventory || [];
 
       let html = `<div class="panel">`;
-      html += `<div class="panel-header">Inventory</div>`;
+      html += `<div class="panel-header">Inventory ${helpBtn('inventory')}</div>`;
       html += `<div class="panel-body">`;
 
       if (inv.length === 0) {
@@ -4585,7 +4585,7 @@
 
     function buildAddItemPanel() {
       let html = `<div class="panel">`;
-      html += `<div class="panel-header">Add Item</div>`;
+      html += `<div class="panel-header">Add Item ${helpBtn('add-item')}</div>`;
       html += `<div class="panel-body">`;
 
       html += `<div class="toggle-btn-group">`;
@@ -5008,7 +5008,7 @@
       const isAutoImpaired = c.virtues.spi.current === 0;
       const isImpaired = battleImpairedOverride || isAutoImpaired;
 
-      let html = '<div class="panel"><div class="panel-header">Your Attack</div><div class="panel-body">';
+      let html = '<div class="panel"><div class="panel-header">Your Attack' + helpBtn('your-attack') + '</div><div class="panel-body">';
 
       // Weapon checkboxes
       html += '<div style="margin-bottom:8px"><strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light)">Weapons</strong></div>';
@@ -5028,7 +5028,7 @@
       const shield = (c.armour || []).find(a => getArmourType(a) === 'shield' && !a.trapped);
       if (shield) {
         const shieldDice = shield.dice || 'd4';
-        html += `<div style="margin-top:6px;font-size:0.9rem"><span style="color:var(--success)">&#9632;</span> Shield die: <strong>${shieldDice}</strong> (auto-included)</div>`;
+        html += `<div style="margin-top:6px;font-size:0.9rem"><span style="color:var(--success)">&#9632;</span> Shield die: <strong>${shieldDice}</strong> (auto-included)${helpBtn('shield-die', true)}</div>`;
       }
 
       // Mount / Charging
@@ -5038,7 +5038,7 @@
         html += '<strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light)">Mount</strong>';
         if (trample) {
           const chk = battleCharging ? ' checked' : '';
-          html += `<div class="weapon-check"><label><input type="checkbox" onchange="battleToggleCharge()"${chk}> Charging &mdash; adds ${trample} trample die</label></div>`;
+          html += `<div class="weapon-check"><label><input type="checkbox" onchange="battleToggleCharge()"${chk}> Charging &mdash; adds ${trample} trample die${helpBtn('charging', true)}</label></div>`;
         } else {
           html += '<p style="font-size:0.85rem;color:var(--ink-light)">Mount has no trample die</p>';
         }
@@ -5047,7 +5047,7 @@
 
       // Bonus dice
       html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(196,165,110,0.2)">';
-      html += '<strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light)">Bonus Dice</strong>';
+      html += '<strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light)">Bonus Dice</strong>' + helpBtn('bonus-dice', true);
       html += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">';
       html += '<button class="btn btn-small" onclick="battleAddBonus(\'d8\')">+d8</button>';
       html += '<button class="btn btn-small" onclick="battleAddBonus(\'d10\')">+d10</button>';
@@ -5068,7 +5068,7 @@
       // Impaired toggle
       html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(196,165,110,0.2)">';
       const impChk = battleImpairedOverride ? ' checked' : '';
-      html += `<label style="font-size:0.9rem;cursor:pointer"><input type="checkbox" onchange="battleToggleImpaired()"${impChk}> <strong>Impaired</strong></label>`;
+      html += `<label style="font-size:0.9rem;cursor:pointer"><input type="checkbox" onchange="battleToggleImpaired()"${impChk}> <strong>Impaired</strong></label>${helpBtn('battle-impaired', true)}`;
       if (isAutoImpaired && !battleImpairedOverride) {
         html += ' <span style="color:var(--danger);font-size:0.82rem">(auto: SPI = 0)</span>';
       }
@@ -5278,7 +5278,7 @@
       ];
 
       let html = '<div class="panel collapsible">';
-      html += '<div class="panel-header">Attack Steps</div>';
+      html += '<div class="panel-header">Attack Steps' + helpBtn('attack-steps') + '</div>';
       html += '<div class="panel-body">';
       steps.forEach(s => {
         html += `<details class="attack-step">
@@ -5296,7 +5296,7 @@
       if (!c.feats) c.feats = { smite: 'available', focus: 'available', deny: 'available' };
 
       let html = '<div class="panel">';
-      html += '<div class="panel-header">Feats</div>';
+      html += '<div class="panel-header">Feats' + helpBtn('feats') + '</div>';
       html += '<div class="panel-body">';
 
       ['smite', 'focus', 'deny'].forEach(key => {
@@ -5306,7 +5306,7 @@
         const saveVal = c.virtues[saveVirtue] ? c.virtues[saveVirtue].current : '?';
 
         html += `<div class="feat-card ${state}">`;
-        html += `<div class="feat-name">${feat.name}</div>`;
+        html += `<div class="feat-name">${feat.name}${helpBtn('feat-' + key, true)}</div>`;
         html += `<div class="feat-desc">${feat.description}</div>`;
         html += `<div class="feat-save">Save: ${feat.save} (current: ${saveVal})</div>`;
         html += '<div class="feat-actions">';
@@ -5365,7 +5365,7 @@
     // --- Gambits Panel ---
     function buildGambitsPanel() {
       let html = '<div class="panel collapsible">';
-      html += '<div class="panel-header">Gambits Reference</div>';
+      html += '<div class="panel-header">Gambits Reference' + helpBtn('gambits-ref') + '</div>';
       html += '<div class="panel-body">';
 
       html += '<div style="font-size:0.85rem;color:var(--ink-light);margin-bottom:8px">Discard a die showing <strong>4+</strong> to perform a Gambit. The highest die cannot be used for a Gambit.</div>';
@@ -5392,10 +5392,10 @@
 
     function buildDamageCalcPanel() {
       let html = '<div class="panel">';
-      html += '<div class="panel-header">Incoming Damage</div>';
+      html += '<div class="panel-header">Incoming Damage' + helpBtn('incoming-damage') + '</div>';
       html += '<div class="panel-body">';
       html += '<div class="damage-calc-input">';
-      html += '<label style="font-size:0.9rem;font-weight:bold">Raw Damage:</label>';
+      html += '<label style="font-size:0.9rem;font-weight:bold">Raw Damage:' + helpBtn('damage-calc', true) + '</label>';
       html += '<input type="number" id="damage-raw-input" min="0" value="0">';
       html += '<button class="btn btn-gold" onclick="applyDamageFromInput()">Apply Damage</button>';
       html += '</div>';
@@ -5521,7 +5521,7 @@
       if (!c.mount) return '';
 
       let html = '<div class="panel">';
-      html += '<div class="panel-header">Mounted Combat</div>';
+      html += '<div class="panel-header">Mounted Combat' + helpBtn('mounted-combat') + '</div>';
       html += '<div class="panel-body">';
 
       // Mount toggle
@@ -5757,8 +5757,8 @@
       switcherHtml += '</select>';
       switcherHtml += ' <button class="btn btn-small btn-gold" onclick="showNewCharacterModal()">New</button>';
       switcherHtml += ' <button class="btn btn-small btn-danger" onclick="confirmDeleteChar()">Delete</button>';
-      switcherHtml += ' <button class="btn btn-small" onclick="exportChar()" style="margin-left:8px">Export</button>';
-      switcherHtml += ' <button class="btn btn-small" onclick="importChar()">Import</button>';
+      switcherHtml += ' <button class="btn btn-small" onclick="exportChar()" style="margin-left:8px">Export</button>' + helpBtn('export-char', true);
+      switcherHtml += ' <button class="btn btn-small" onclick="importChar()">Import</button>' + helpBtn('import-char', true);
       switcherEl.innerHTML = switcherHtml;
 
       // Wire up character select change
@@ -5783,17 +5783,18 @@
           Glory: <button class="btn btn-small" onclick="adjustGlory(-1)">-</button>
           <strong id="glory-display">${currentChar.glory}</strong>
           <button class="btn btn-small" onclick="adjustGlory(1)">+</button>
+          ${helpBtn('glory', true)}
         </span>
         <span class="char-detail" style="color:var(--gold-light);font-weight:bold">${rank.rank}</span>
         <span class="char-detail">
-          Age: <select id="age-select" style="font-size:0.85rem">
+          Age: ${helpBtn('age', true)}<select id="age-select" style="font-size:0.85rem">
             <option value="Young"${currentChar.age === 'Young' ? ' selected' : ''}>Young</option>
             <option value="Mature"${currentChar.age === 'Mature' ? ' selected' : ''}>Mature</option>
             <option value="Old"${currentChar.age === 'Old' ? ' selected' : ''}>Old</option>
           </select>
         </span>
         <span class="char-detail">
-          Season: <select id="season-select" style="font-size:0.85rem">
+          Season: ${helpBtn('season', true)}<select id="season-select" style="font-size:0.85rem">
             <option value="Spring"${currentChar.season === 'Spring' ? ' selected' : ''}>Spring</option>
             <option value="Harvest"${currentChar.season === 'Harvest' ? ' selected' : ''}>Harvest</option>
             <option value="Winter"${currentChar.season === 'Winter' ? ' selected' : ''}>Winter</option>
