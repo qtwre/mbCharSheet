@@ -4727,7 +4727,7 @@
 
     function buildDatabaseSearch() {
       const query = (window._equipSearchQuery || '').toLowerCase();
-      let html = `<input type="text" class="equip-search" id="equip-search-input" placeholder="Search weapons and armour..." value="${window._equipSearchQuery || ''}" oninput="equipSearchInput(this.value)" onfocus="equipSearchFocus()">`;
+      let html = `<input type="text" class="equip-search" id="equip-search-input" placeholder="Search weapons and armour..." value="${window._equipSearchQuery || ''}" oninput="equipSearchInput(this.value)" onfocus="equipSearchFocus()" onblur="equipSearchBlur()">`;
 
       if (window._equipSearchOpen) {
         const weaponResults = query.length > 0
@@ -4867,6 +4867,14 @@
         window._equipSearchOpen = true;
         renderEquipment();
       }
+    }
+
+    function equipSearchBlur() {
+      setTimeout(() => {
+        window._equipSearchOpen = false;
+        window._equipSearchQuery = '';
+        renderEquipment();
+      }, 200);
     }
 
     function toggleArmourTrapped(index) {
