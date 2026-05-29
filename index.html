@@ -4727,11 +4727,15 @@
 
     function buildDatabaseSearch() {
       const query = (window._equipSearchQuery || '').toLowerCase();
-      let html = `<input type="text" class="equip-search" id="equip-search-input" placeholder="Search weapons and armour..." value="${window._equipSearchQuery || ''}" oninput="equipSearchInput(this.value)">`;
+      let html = `<input type="text" class="equip-search" id="equip-search-input" placeholder="Search weapons and armour..." value="${window._equipSearchQuery || ''}" oninput="equipSearchInput(this.value)" onfocus="equipSearchFocus()">`;
 
-      if (query.length > 0) {
-        const weaponResults = EQUIPMENT_DB.weapons.filter(w => w.name.toLowerCase().includes(query));
-        const armourResults = EQUIPMENT_DB.armour.filter(a => a.name.toLowerCase().includes(query));
+      if (window._equipSearchOpen) {
+        const weaponResults = query.length > 0
+          ? EQUIPMENT_DB.weapons.filter(w => w.name.toLowerCase().includes(query))
+          : EQUIPMENT_DB.weapons;
+        const armourResults = query.length > 0
+          ? EQUIPMENT_DB.armour.filter(a => a.name.toLowerCase().includes(query))
+          : EQUIPMENT_DB.armour;
         const allResults = [
           ...weaponResults.map(w => ({ ...w, _cat: 'weapon' })),
           ...armourResults.map(a => ({ ...a, _cat: 'armour' })),
@@ -4762,8 +4766,6 @@
           });
           html += `</div>`;
         }
-      } else {
-        html += `<p style="font-size:0.85rem;color:var(--ink-light);text-align:center">Type to search weapons and armour</p>`;
       }
       return html;
     }
@@ -4819,7 +4821,7 @@
       // Restore search focus after re-render
       setTimeout(() => {
         const searchInput = document.getElementById('equip-search-input');
-        if (searchInput && window._equipSearchQuery) {
+        if (searchInput && window._equipSearchOpen) {
           searchInput.focus();
           searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
         }
@@ -4846,15 +4848,25 @@
 
     window._equipAddMode = 'database';
     window._equipSearchQuery = '';
+    window._equipSearchOpen = false;
 
     function setEquipAddMode(mode) {
       window._equipAddMode = mode;
+      window._equipSearchOpen = false;
       renderEquipment();
     }
 
     function equipSearchInput(val) {
       window._equipSearchQuery = val;
+      window._equipSearchOpen = true;
       renderEquipment();
+    }
+
+    function equipSearchFocus() {
+      if (!window._equipSearchOpen) {
+        window._equipSearchOpen = true;
+        renderEquipment();
+      }
     }
 
     function toggleArmourTrapped(index) {
