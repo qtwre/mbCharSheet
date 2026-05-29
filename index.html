@@ -5736,6 +5736,7 @@
       });
 
       let optionsHtml = '<option value="">— Select a Knight —</option>';
+      optionsHtml += '<option value="custom">— Custom Knight —</option>';
       Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(prefix => {
         optionsHtml += `<optgroup label="Group ${prefix}">`;
         groups[prefix].forEach(k => {
@@ -5770,6 +5771,28 @@
               <input type="number" id="nc-gd" value="1" min="0" max="19" style="width:100%">
             </div>
           </div>
+          <div id="nc-custom-fields" style="display:none;margin-top:8px">
+            <div class="flex-row" style="gap:8px">
+              <div class="flex-col" style="flex:1">
+                <label><strong>Ability Name</strong></label>
+                <input type="text" id="nc-ability-name" placeholder="e.g. Battle Cry" style="width:100%">
+              </div>
+            </div>
+            <div class="flex-col" style="margin-top:4px">
+              <label><strong>Ability Description</strong></label>
+              <textarea id="nc-ability-desc" placeholder="Describe what the ability does..." rows="2" style="width:100%;font-family:var(--font-body);font-size:0.9rem;padding:6px;border:1px solid var(--panel-border);border-radius:var(--radius)"></textarea>
+            </div>
+            <div class="flex-row" style="gap:8px;margin-top:8px">
+              <div class="flex-col" style="flex:1">
+                <label><strong>Passion Name</strong></label>
+                <input type="text" id="nc-passion-name" placeholder="e.g. Justice" style="width:100%">
+              </div>
+            </div>
+            <div class="flex-col" style="margin-top:4px">
+              <label><strong>Passion Description</strong></label>
+              <textarea id="nc-passion-desc" placeholder="Describe the passion..." rows="2" style="width:100%;font-family:var(--font-body);font-size:0.9rem;padding:6px;border:1px solid var(--panel-border);border-radius:var(--radius)"></textarea>
+            </div>
+          </div>
           <div class="modal-actions">
             <button class="btn" onclick="hideModal()">Cancel</button>
             <button class="btn" onclick="hideModal(); importChar();">Import JSON</button>
@@ -5785,8 +5808,15 @@
         const sel = document.getElementById('nc-knight');
         if (sel) {
           sel.addEventListener('change', () => {
-            const knight = KNIGHT_DB.find(k => k.id === sel.value);
+            const customFields = document.getElementById('nc-custom-fields');
             const preview = document.getElementById('nc-preview');
+            if (sel.value === 'custom') {
+              if (customFields) customFields.style.display = 'block';
+              preview.innerHTML = '<p style="font-size:0.85rem;color:var(--ink-light);margin-top:8px;font-style:italic">Custom knight — add equipment from the Equipment tab after creation.</p>';
+              return;
+            }
+            if (customFields) customFields.style.display = 'none';
+            const knight = KNIGHT_DB.find(k => k.id === sel.value);
             if (!knight) { preview.innerHTML = ''; return; }
             const propList = knight.property.map(p => {
               if (p.type === 'weapon') return `${p.name} (${p.dice}${p.tags && p.tags.length ? ', ' + p.tags.join(', ') : ''})`;
@@ -5824,7 +5854,16 @@
 
       if (!knightId) { alert('Please select a knight type.'); return; }
 
-      const char = createDefaultChar(knightId, name || 'New Knight');
+      const char = createDefaultChar(knightId === 'custom' ? 'custom' : knightId, name || 'New Knight');
+
+      if (knightId === 'custom') {
+        const abilityName = (document.getElementById('nc-ability-name')?.value || '').trim();
+        const abilityDesc = (document.getElementById('nc-ability-desc')?.value || '').trim();
+        const passionName = (document.getElementById('nc-passion-name')?.value || '').trim();
+        const passionDesc = (document.getElementById('nc-passion-desc')?.value || '').trim();
+        char.ability = { name: abilityName || 'Custom Ability', description: abilityDesc || '' };
+        char.passion = { name: passionName || 'Custom Passion', description: passionDesc || '' };
+      }
 
       // Set user-entered virtue values
       char.virtues.vig = { current: vig, max: vig };
@@ -5956,6 +5995,7 @@
     }
 
     function getKnightLabel(knightId) {
+      if (knightId === 'custom') return 'Custom Knight';
       const knight = KNIGHT_DB.find(k => k.id === knightId);
       return knight ? `${knight.number}: ${knight.name}` : knightId;
     }
