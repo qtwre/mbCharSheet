@@ -54,4 +54,4 @@ Everything runs client-side. No data leaves your machine.
 
 Mythic Bastionland is by Chris McDowall / Bastionland Press.
 
-This tracker was created by Eric Sack.
+This tracker was created by qtwre.
