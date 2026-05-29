@@ -1794,6 +1794,86 @@
       border-left: 3px solid var(--gold);
       margin: 6px 0;
     }
+
+    /* ===== Help Tooltips ===== */
+    .help-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--parchment-bg);
+      font-size: 0.7rem;
+      font-weight: bold;
+      font-family: var(--font-serif);
+      cursor: pointer;
+      border: 1px solid var(--gold-light);
+      line-height: 1;
+      margin-left: 6px;
+      vertical-align: middle;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      transition: background 0.15s;
+    }
+
+    .help-btn:hover {
+      background: var(--gold-light);
+    }
+
+    .help-popover {
+      position: fixed;
+      z-index: 1000;
+      max-width: 320px;
+      padding: 10px 14px;
+      background: var(--parchment-bg);
+      border: 2px solid var(--gold);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      color: var(--ink);
+      line-height: 1.45;
+      pointer-events: auto;
+    }
+
+    .help-popover::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 16px;
+      width: 14px;
+      height: 14px;
+      background: var(--parchment-bg);
+      border-left: 2px solid var(--gold);
+      border-top: 2px solid var(--gold);
+      transform: rotate(45deg);
+    }
+
+    .help-popover-title {
+      font-weight: bold;
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    /* Help btn inside panel headers — don't mess with collapsible click */
+    .panel-header .help-btn {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Inline help btn next to controls */
+    .help-inline {
+      width: 16px;
+      height: 16px;
+      font-size: 0.65rem;
+      margin-left: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1831,6 +1911,65 @@
   </div>
 
   <script>
+    // === HELP TOOLTIP SYSTEM ===
+
+    let activePopover = null;
+
+    function showHelp(event, key) {
+      event.stopPropagation();
+      dismissHelp();
+
+      const text = HELP_TEXT[key];
+      if (!text) return;
+
+      const btn = event.currentTarget;
+      const rect = btn.getBoundingClientRect();
+
+      const popover = document.createElement('div');
+      popover.className = 'help-popover';
+
+      const title = key.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      popover.innerHTML = `<div class="help-popover-title">${title}</div>${text}`;
+
+      document.body.appendChild(popover);
+      activePopover = popover;
+
+      // Position: prefer below the button, shift left if needed
+      const popRect = popover.getBoundingClientRect();
+      let top = rect.bottom + 8;
+      let left = rect.left - 4;
+
+      // If it would go off the right edge, shift left
+      if (left + popRect.width > window.innerWidth - 12) {
+        left = window.innerWidth - popRect.width - 12;
+      }
+      // If it would go off the bottom, show above
+      if (top + popRect.height > window.innerHeight - 12) {
+        top = rect.top - popRect.height - 8;
+      }
+      if (left < 12) left = 12;
+
+      popover.style.top = top + 'px';
+      popover.style.left = left + 'px';
+
+      // Dismiss on next click anywhere
+      setTimeout(() => {
+        document.addEventListener('click', dismissHelp, { once: true });
+      }, 0);
+    }
+
+    function dismissHelp() {
+      if (activePopover) {
+        activePopover.remove();
+        activePopover = null;
+      }
+    }
+
+    function helpBtn(key, inline) {
+      const cls = inline ? 'help-btn help-inline' : 'help-btn';
+      return `<span class="${cls}" onclick="showHelp(event,'${key}')" title="Help">?</span>`;
+    }
+
     // === GAME DATABASES ===
 
     const EQUIPMENT_DB = {
