@@ -3,6 +3,7 @@
 
 # Include the app
 !index.html
+!README.md
 
 # Include git config files
 !.gitignore
