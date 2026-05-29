@@ -5111,7 +5111,8 @@
         if (state === 'available') {
           html += `<button class="btn btn-small btn-gold" onclick="battleUseFeat('${key}')">Use</button>`;
         } else if (state === 'pending') {
-          html += `<span style="color:var(--warning);font-weight:bold;font-size:0.85rem;margin-right:8px">Pending ${feat.save} Save...</span>`;
+          html += `<span style="color:var(--warning);font-weight:bold;font-size:0.85rem;margin-right:8px">Pending ${feat.save} Save (≤${saveVal})...</span>`;
+          html += `<button class="btn btn-small btn-gold" onclick="battleFeatSaveRoll('${key}')" style="margin-right:4px">Roll d20</button>`;
           html += `<button class="btn btn-small" style="border-color:var(--success);color:var(--success)" onclick="battleFeatSaveResult('${key}', true)">Passed</button>`;
           html += `<button class="btn btn-small" style="border-color:var(--danger);color:var(--danger)" onclick="battleFeatSaveResult('${key}', false)">Failed</button>`;
         } else if (state === 'fatigued') {
@@ -5143,6 +5144,19 @@
       });
       const resultText = passed ? 'Passed' : 'Failed (Fatigued)';
       addRestorableJournalEntry(`${FEATS[key].name} ${FEATS[key].save} Save: ${resultText}`, 'feat_use', { feat: key, previousState });
+    }
+
+    function battleFeatSaveRoll(key) {
+      const feat = FEATS[key];
+      const saveVirtue = feat.save.toLowerCase();
+      const saveVal = currentChar.virtues[saveVirtue]?.current || 0;
+      const roll = rollDie(20);
+      const passed = roll <= saveVal;
+      const resultText = passed
+        ? `Rolled ${roll} vs ${feat.save} ${saveVal} — Passed!`
+        : `Rolled ${roll} vs ${feat.save} ${saveVal} — Failed!`;
+      alert(resultText);
+      battleFeatSaveResult(key, passed);
     }
 
     // --- Gambits Panel ---
@@ -5227,18 +5241,17 @@
           updateChar(ch => { ch.gd.current = 0; });
           summaryParts.push('<span class="damage-arrow">&rarr;</span> GD: ' + gdWas + '&rarr;0');
           if (excess > 0) {
-            summaryParts.push('(excess: ' + excess + ')');
+            // Excess damage — no scar, apply overflow to VIG
+            summaryParts.push('(excess: ' + excess + ' &rarr; VIG)');
+            lastDamageSummary = summaryParts.join(' ');
+            addJournalEntry('GD broken by ' + raw + ' raw damage (after armour: ' + afterArmour + ', GD was ' + gdWas + '). Excess ' + excess + ' to VIG.', true);
+            applyVigDamage(excess);
+          } else {
+            // GD reduced to exactly 0 — scar earned
+            lastDamageSummary = summaryParts.join(' ') + '<br><span style="color:var(--warning);font-weight:bold">GD reduced to exactly 0 — Scar earned!</span>';
+            addJournalEntry('GD reduced to exactly 0 by ' + raw + ' raw damage (after armour: ' + afterArmour + '). Scar earned!', true);
+            scarFlow(0, () => { renderBattle(); });
           }
-          lastDamageSummary = summaryParts.join(' ') + '<br><span style="color:var(--warning);font-weight:bold">GD broken! Scar earned.</span>';
-          addJournalEntry('GD broken by ' + raw + ' raw damage (after armour: ' + afterArmour + ', GD was ' + gdWas + ').', true);
-          // Trigger scar flow, then apply excess to VIG
-          scarFlow(excess, (excessDmg) => {
-            if (excessDmg > 0) {
-              applyVigDamage(excessDmg);
-            } else {
-              renderBattle();
-            }
-          });
           return;
         } else {
           const gdAfter = c.gd.current - afterArmour;
